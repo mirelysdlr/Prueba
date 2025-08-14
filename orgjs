@@ -1,0 +1,110 @@
+const API_URL = "https://localhost:5001/api/eventos"; // Ajusta a tu API real
+
+let eventos = [];
+let eventoSeleccionado = null;
+
+const listaEventos = document.getElementById("listaEventos");
+const detalleEvento = document.getElementById("detalleEvento");
+const modalCrear = document.getElementById("modalCrear");
+const btnNuevoEvento = document.getElementById("btnNuevoEvento");
+const btnCancelar = document.getElementById("btnCancelar");
+const btnGuardar = document.getElementById("btnGuardar");
+const inputBuscar = document.getElementById("inputBuscar");
+
+// ==== CARGAR LISTA DESDE API ====
+async function cargarEventos() {
+  try {
+    const res = await fetch(API_URL);
+    eventos = await res.json();
+    renderLista();
+  } catch (err) {
+    console.error("Error al cargar eventos:", err);
+  }
+}
+
+function renderLista() {
+  listaEventos.innerHTML = "";
+  const filtro = inputBuscar.value.toLowerCase();
+  eventos
+    .filter(ev => ev.nombre.toLowerCase().includes(filtro))
+    .forEach(ev => {
+      const li = document.createElement("li");
+      li.className =
+        "cursor-pointer rounded-md px-3 py-2 text-sm hover:bg-gray-50 flex justify-between items-center";
+      li.style.borderLeft = `6px solid ${ev.color || "#3b82f6"}`;
+      li.innerHTML = `
+        <span onclick="mostrarDetalle('${ev.id}')">${ev.nombre}</span>
+        <button onclick="eliminarEvento('${ev.id}')" class="text-red-600">🗑</button>
+      `;
+      listaEventos.appendChild(li);
+    });
+}
+
+// ==== DETALLE EVENTO ====
+async function mostrarDetalle(id) {
+  try {
+    const res = await fetch(`${API_URL}/${id}`);
+    const ev = await res.json();
+    eventoSeleccionado = ev;
+    detalleEvento.innerHTML = `
+      <h4 class="text-lg font-bold">${ev.nombre}</h4>
+      <p class="text-gray-500">${ev.fecha}</p>
+      <p class="mt-2"><strong>Lugar:</strong> ${ev.ubicacion}</p>
+      <div class="mt-4">${ev.descripcion || ""}</div>
+    `;
+  } catch (err) {
+    console.error("Error al obtener detalle:", err);
+  }
+}
+
+// ==== CREAR EVENTO ====
+btnNuevoEvento.onclick = () => modalCrear.classList.remove("hidden");
+btnCancelar.onclick = () => modalCrear.classList.add("hidden");
+
+btnGuardar.onclick = async () => {
+  const nuevoEvento = {
+    nombre: document.getElementById("tituloEvento").value,
+    fecha: document.getElementById("fechaEvento").value,
+    ubicacion: document.getElementById("lugarEvento").value,
+    descripcion: document.getElementById("descEvento").innerHTML
+  };
+
+  if (!nuevoEvento.nombre || !nuevoEvento.fecha) {
+    alert("Título y fecha son obligatorios");
+    return;
+  }
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(nuevoEvento)
+    });
+    modalCrear.classList.add("hidden");
+    cargarEventos();
+  } catch (err) {
+    console.error("Error al crear evento:", err);
+  }
+};
+
+// ==== ELIMINAR EVENTO ====
+async function eliminarEvento(id) {
+  if (!confirm("¿Seguro que quieres eliminar este evento?")) return;
+  try {
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    cargarEventos();
+  } catch (err) {
+    console.error("Error al eliminar evento:", err);
+  }
+}
+
+// ==== BUSCAR ====
+inputBuscar.oninput = renderLista;
+
+// ==== FORMATO DE TEXTO ====
+function formatText(cmd) {
+  document.execCommand(cmd, false, null);
+}
+
+// ==== INICIO ====
+document.addEventListener("DOMContentLoaded", cargarEventos);

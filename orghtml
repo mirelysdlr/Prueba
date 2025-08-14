@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eventia Planner — Eventia Solutions S.R.L.</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{ --brand:#0ea5e9; --ink:#0f172a; --muted:#64748b; --bg:#f8fafc; }
+    html,body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif}
+    .chip{ @apply rounded-full px-2.5 py-0.5 text-xs bg-slate-100 text-slate-600; }
+    .btn{ @apply inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm; }
+    .btn-primary{ @apply bg-sky-600 text-white hover:bg-sky-700; }
+    .btn-ghost{ @apply border border-slate-200 hover:bg-slate-50; }
+    .badge{ @apply text-[11px] rounded-full px-2 py-0.5 bg-slate-100 text-slate-600; }
+    .tab-btn{ @apply px-3 py-2 text-sm rounded-lg hover:bg-slate-100; }
+    .active-tab{ @apply bg-slate-900 text-white; }
+  </style>
+</head>
+<body class="bg-[var(--bg)] text-[var(--ink)]">
+
+  <!-- Shell -->
+  <div class="min-h-screen grid grid-rows-[auto,1fr]">
+
+    <!-- Topbar -->
+    <header class="border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded-xl bg-sky-600/10 grid place-content-center">
+            <span class="text-sky-700 text-lg">E</span>
+          </div>
+          <div>
+            <h1 class="text-sm sm:text-base font-semibold leading-tight">Eventia Solutions S.R.L.</h1>
+            <p class="text-[11px] text-slate-500 -mt-0.5">Tu evento, tu momento… nosotros lo organizamos.</p>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-2">
+          <button id="btnNew" class="btn btn-primary">➕ Nuevo evento</button>
+          <button id="btnRefresh" class="btn btn-ghost">⟲ Refrescar</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 grid grid-cols-12 gap-6">
+
+      <!-- Left: Filters & List -->
+      <aside class="col-span-12 lg:col-span-4 xl:col-span-3 space-y-4">
+        <section class="bg-white rounded-2xl shadow-sm border p-4">
+          <div class="flex items-center gap-2">
+            <div class="flex-1">
+              <input id="q" type="search" placeholder="Buscar por nombre o lugar…" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"/>
+            </div>
+            <button id="btnSearch" class="btn btn-ghost">🔎</button>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs">
+            <button data-filter="today" class="badge">Hoy</button>
+            <button data-filter="week" class="badge">Esta semana</button>
+            <button data-filter="month" class="badge">Este mes</button>
+            <button data-filter="all" class="badge">Todos</button>
+          </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-sm border p-2">
+          <ul id="list" class="divide-y divide-slate-100 max-h-[65vh] overflow-auto"></ul>
+        </section>
+
+        <!-- Identity / values -->
+        <section class="bg-white rounded-2xl shadow-sm border p-4">
+          <h3 class="text-sm font-semibold">Nuestra misión</h3>
+          <p class="text-sm text-slate-600 mt-1">Facilitar la planificación y gestión de eventos familiares con una plataforma intuitiva, segura y adaptable.</p>
+          <div class="mt-3 flex flex-wrap gap-1">
+            <span class="chip">Compromiso</span>
+            <span class="chip">Innovación</span>
+            <span class="chip">Transparencia</span>
+            <span class="chip">Confianza</span>
+            <span class="chip">Cliente primero</span>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Right: Detail -->
+      <main class="col-span-12 lg:col-span-8 xl:col-span-9 space-y-4">
+        <section class="bg-white rounded-2xl shadow-sm border">
+          <div class="p-4 sm:p-6 border-b flex items-center justify-between">
+            <div>
+              <h2 id="evTitle" class="text-lg sm:text-xl font-semibold">Selecciona un evento</h2>
+              <p id="evMeta" class="text-sm text-slate-500">Fecha, hora y ubicación aparecerán aquí.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnEdit" class="btn btn-ghost">✏️ Editar</button>
+              <button id="btnDelete" class="btn btn-ghost">🗑 Eliminar</button>
+            </div>
+          </div>
+
+          <div class="p-4 sm:p-6">
+            <div class="flex gap-2 mb-3 overflow-auto">
+              <button class="tab-btn active-tab" data-tab="overview">Resumen</button>
+              <button class="tab-btn" data-tab="guests">Invitados</button>
+              <button class="tab-btn" data-tab="tasks">Tareas</button>
+              <button class="tab-btn" data-tab="budget">Presupuesto</button>
+              <button class="tab-btn" data-tab="timeline">Cronograma</button>
+              <button class="tab-btn" data-tab="comments">Comentarios</button>
+            </div>
+
+            <!-- Tabs content -->
+            <div id="tab-overview" class="tab-panel">
+              <div id="evDescription" class="prose prose-sm max-w-none text-slate-700"></div>
+              <div class="mt-6">
+                <h4 class="text-sm font-semibold mb-2">Otros eventos</h4>
+                <div id="related" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+              </div>
+            </div>
+
+            <div id="tab-guests" class="tab-panel hidden">
+              <div class="flex items-center gap-2 mb-3">
+                <input id="guestName" class="rounded-xl border px-3 py-2 text-sm flex-1" placeholder="Nombre del invitado" />
+                <input id="guestPhone" class="rounded-xl border px-3 py-2 text-sm w-36" placeholder="Teléfono" />
+                <button id="btnAddGuest" class="btn btn-primary">Añadir</button>
+              </div>
+              <ul id="guestList" class="divide-y"></ul>
+            </div>
+
+            <div id="tab-tasks" class="tab-panel hidden">
+              <div class="flex items-center gap-2 mb-3">
+                <input id="taskTitle" class="rounded-xl border px-3 py-2 text-sm flex-1" placeholder="Nueva tarea" />
+                <input id="taskDue" type="date" class="rounded-xl border px-3 py-2 text-sm" />
+                <button id="btnAddTask" class="btn btn-primary">Añadir</button>
+              </div>
+              <ul id="taskList" class="divide-y"></ul>
+            </div>
+
+            <div id="tab-budget" class="tab-panel hidden">
+              <div class="flex items-center gap-2 mb-3">
+                <input id="itemDesc" class="rounded-xl border px-3 py-2 text-sm flex-1" placeholder="Partida (ej. Catering)" />
+                <input id="itemBudget" type="number" class="rounded-xl border px-3 py-2 text-sm w-36" placeholder="Presupuesto" />
+                <input id="itemSpend" type="number" class="rounded-xl border px-3 py-2 text-sm w-36" placeholder="Gasto" />
+                <button id="btnAddItem" class="btn btn-primary">Añadir</button>
+              </div>
+              <div class="overflow-auto">
+                <table class="min-w-full text-sm">
+                  <thead>
+                    <tr class="text-left text-slate-500">
+                      <th class="py-2 pr-4">Concepto</th>
+                      <th class="py-2 pr-4">Presupuesto</th>
+                      <th class="py-2 pr-4">Gasto</th>
+                      <th class="py-2">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="budgetTable" class="divide-y"></tbody>
+                </table>
+              </div>
+              <div class="mt-3 text-right text-sm">
+                <span id="budgetSummary" class="font-medium"></span>
+              </div>
+            </div>
+
+            <div id="tab-timeline" class="tab-panel hidden">
+              <div class="flex items-center gap-2 mb-3">
+                <input id="actTime" type="time" class="rounded-xl border px-3 py-2 text-sm" />
+                <input id="actDesc" class="rounded-xl border px-3 py-2 text-sm flex-1" placeholder="Descripción de actividad" />
+                <button id="btnAddActivity" class="btn btn-primary">Añadir</button>
+              </div>
+              <ul id="timelineList" class="divide-y"></ul>
+            </div>
+
+            <div id="tab-comments" class="tab-panel hidden">
+              <div class="flex items-center gap-2 mb-3">
+                <input id="commentText" class="rounded-xl border px-3 py-2 text-sm flex-1" placeholder="Escribe un comentario…" />
+                <button id="btnAddComment" class="btn btn-primary">Publicar</button>
+              </div>
+              <ul id="commentList" class="divide-y"></ul>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Create/Edit Event -->
+  <div id="modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close></div>
+    <div class="absolute inset-x-0 top-10 mx-auto w-[95%] max-w-xl">
+      <div class="bg-white rounded-2xl shadow-xl border p-5">
+        <h3 id="modalTitle" class="text-lg font-semibold mb-3">Nuevo evento</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input id="evName" class="rounded-xl border px-3 py-2 text-sm" placeholder="Nombre del evento *" />
+          <input id="evDate" type="date" class="rounded-xl border px-3 py-2 text-sm" />
+          <input id="evTime" type="time" class="rounded-xl border px-3 py-2 text-sm" />
+          <input id="evPlace" class="rounded-xl border px-3 py-2 text-sm" placeholder="Ubicación" />
+          <input id="evColor" type="color" class="rounded-xl border px-3 py-2 text-sm" value="#0ea5e9" />
+          <input id="evImage" type="file" accept="image/*" class="rounded-xl border px-3 py-2 text-sm" />
+          <div class="sm:col-span-2 border rounded-xl">
+            <div class="flex gap-2 p-2 border-b">
+              <button type="button" class="btn btn-ghost px-2" data-cmd="bold">B</button>
+              <button type="button" class="btn btn-ghost px-2" data-cmd="italic">I</button>
+              <button type="button" class="btn btn-ghost px-2" data-cmd="insertUnorderedList">• Lista</button>
+            </div>
+            <div id="evDesc" contenteditable="true" class="p-2 min-h-[120px] outline-none text-sm"></div>
+          </div>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+          <button class="btn btn-ghost" data-close>Cancelar</button>
+          <button id="btnSave" class="btn btn-primary">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== CONFIG ======
+    const API = {
+      base: "https://localhost:5001/api", // Cambia al dominio/puerto de tu API
+      eventos: function(){ return `${this.base}/eventos`; },
+      evento: function(id){ return `${this.base}/eventos/${id}`; },
+      invitados: function(eventoId){ return `${this.base}/eventos/${eventoId}/invitados`; },
+      invitado: function(id){ return `${this.base}/invitados/${id}`; },
+      tareas: function(eventoId){ return `${this.base}/eventos/${eventoId}/tareas`; },
+      tarea: function(id){ return `${this.base}/tareas/${id}`; },
+      presupuesto: function(eventoId){ return `${this.base}/eventos/${eventoId}/presupuesto`; },
+      partida: function(id){ return `${this.base}/presupuesto/${id}`; },
+      actividades: function(eventoId){ return `${this.base}/eventos/${eventoId}/actividades`; },
+      actividad: function(id){ return `${this.base}/actividades/${id}`; },
+      comentarios: function(eventoId){ return `${this.base}/eventos/${eventoId}/comentarios`; },
+      comentario: function(id){ return `${this.base}/comentarios/${id}`; },
+    };
+
+    // ====== STATE ======
+    let state = {
+      eventos: [],
+      eventoSel: null,
+      filters: { when: 'all', q: '' },
+    };
+
+    // ====== ELEMENTS ======
+    const list = document.getElementById('list');
+    const q = document.getElementById('q');
+    const btnSearch = document.getElementById('btnSearch');
+    const btnNew = document.getElementById('btnNew');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const evTitle = document.getElementById('evTitle');
+    const evMeta = document.getElementById('evMeta');
+    const evDescription = document.getElementById('evDescription');
+    const related = document.getElementById('related');
+    const btnEdit = document.getElementById('btnEdit');
+    const btnDelete = document.getElementById('btnDelete');
+
+    // Tabs
+    const tabButtons = document.querySelectorAll('.tab-btn');
+
+    // Guests
+    const guestName = document.getElementById('guestName');
+    const guestPhone = document.getElementById('guestPhone');
+    const btnAddGuest = document.getElementById('btnAddGuest');
+    const guestList = document.getElementById('guestList');
+
+    // Tasks
+    const taskTitle = document.getElementById('taskTitle');
+    const taskDue = document.getElementById('taskDue');
+    const btnAddTask = document.getElementById('btnAddTask');
+    const taskList = document.getElementById('taskList');
+
+    // Budget
+    const itemDesc = document.getElementById('itemDesc');
+    const itemBudget = document.getElementById('itemBudget');
+    const itemSpend = document.getElementById('itemSpend');
+    const btnAddItem = document.getElementById('btnAddItem');
+    const budgetTable = document.getElementById('budgetTable');
+    const budgetSummary = document.getElementById('budgetSummary');
+
+    // Timeline
+    const actTime = document.getElementById('actTime');
+    const actDesc = document.getElementById('actDesc');
+    const btnAddActivity = document.getElementById('btnAddActivity');
+    const timelineList = document.getElementById('timelineList');
+
+    // Comments
+    const commentText = document.getElementById('commentText');
+    const btnAddComment = document.getElementById('btnAddComment');
+    const commentList = document.getElementById('commentList');
+
+    // Modal
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const btnSave = document.getElementById('btnSave');
+    const evName = document.getElementById('evName');
+    const evDate = document.getElementById('evDate');
+    const evTime = document.getElementById('evTime');
+    const evPlace = document.getElementById('evPlace');
+    const evColor = document.getElementById('evColor');
+    const evImage = document.getElementById('evImage');
+    const evDesc = document.getElementById('evDesc');
+
+    // ====== HELPERS ======
+    function fmtDate(iso){
+      if(!iso) return '';
+      try { return new Date(iso).toLocaleString(); } catch { return iso; }
+    }
+    function asCurrency(n){
+      const v = Number(n||0);
+      return v.toLocaleString('es-DO',{style:'currency',currency:'DOP'});
+    }
+    function openModal(editing=false){ modal.classList.remove('hidden'); modalTitle.textContent = editing? 'Editar evento' : 'Nuevo evento'; }
+    function closeModal(){ modal.classList.add('hidden'); }
+    function exec(cmd){ document.execCommand(cmd,false,null); }
+
+    // Toolbar formatting
+    document.querySelectorAll('[data-cmd]').forEach(btn=>btn.addEventListener('click',()=>exec(btn.dataset.cmd)));
+
+    document.querySelectorAll('[data-close]').forEach(el=> el.addEventListener('click', closeModal));
+
+    // ====== API WRAPPERS ======
+    async function apiGet(url){ const r = await fetch(url); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+    async function apiPost(url, body){ const r = await fetch(url,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); return r.json?.() ?? null; }
+    async function apiPut(url, body){ const r = await fetch(url,{method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); return r.json?.() ?? null; }
+    async function apiDel(url){ const r = await fetch(url,{method:'DELETE'}); if(!r.ok) throw new Error(await r.text()); return true; }
+
+    // ====== LOAD & RENDER LIST ======
+    async function loadEvents(){
+      const all = await apiGet(API.eventos());
+      state.eventos = all.sort((a,b)=> new Date(a.fecha) - new Date(b.fecha));
+      renderList();
+      if(!state.eventoSel && state.eventos[0]) selectEvent(state.eventos[0].id);
+    }
+
+    function passFilter(ev){
+      const qv = state.filters.q.trim().toLowerCase();
+      const inText = (ev.nombre||'').toLowerCase().includes(qv) || (ev.ubicacion||'').toLowerCase().includes(qv);
+      let when = true;
+      const d = new Date(ev.fecha);
+      const now = new Date();
+      if(state.filters.when==='today'){
+        when = d.toDateString()===now.toDateString();
+      }else if(state.filters.when==='week'){
+        const start=new Date(now); start.setDate(now.getDate()-now.getDay());
+        const end=new Date(start); end.setDate(start.getDate()+7);
+        when = d>=start && d<end;
+      }else if(state.filters.when==='month'){
+        when = d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+      }
+      return inText && when;
+    }
+
+    function renderList(){
+      list.innerHTML = '';
+      const items = state.eventos.filter(passFilter);
+      if(items.length===0){ list.innerHTML = `<li class="p-4 text-sm text-slate-500">Sin resultados.</li>`; return; }
+      items.forEach(ev=>{
+        const li = document.createElement('li');
+        li.className = 'p-3 hover:bg-slate-50 cursor-pointer';
+        li.innerHTML = `
+          <div class="flex items-start gap-3" onclick="selectEvent('${ev.id}')">
+            <div class="h-2 w-2 rounded-full mt-2" style="background:${ev.color||'#0ea5e9'}"></div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <p class="text-sm font-medium">${ev.nombre||'Sin título'}</p>
+                <span class="text-xs text-slate-500 ml-2">${new Date(ev.fecha).toLocaleDateString()}</span>
+              </div>
+              <p class="text-xs text-slate-500">${ev.ubicacion||''}</p>
+            </div>
+          </div>`;
+        list.appendChild(li);
+      });
+    }
+
+    // ====== SELECT & RENDER DETAIL ======
+    async function selectEvent(id){
+      const ev = await apiGet(API.evento(id));
+      state.eventoSel = ev;
+      evTitle.textContent = ev.nombre || 'Evento';
+      evMeta.textContent = `${fmtDate(ev.fecha)} • ${ev.ubicacion||''}`;
+      evDescription.innerHTML = ev.descripcion || '<p class="text-slate-500 text-sm">Sin descripción.</p>';
+      await Promise.all([loadGuests(), loadTasks(), loadBudget(), loadTimeline(), loadComments(), loadRelated()]);
+    }
+    window.selectEvent = selectEvent;
+
+    // ====== RELATED EVENTS ======
+    async function loadRelated(){
+      const peers = state.eventos.filter(e=> e.id!==state.eventoSel.id).slice(0,6);
+      related.innerHTML = '';
+      peers.forEach(e=>{
+        const card = document.createElement('div');
+        card.className = 'border rounded-xl p-3 hover:shadow-sm cursor-pointer';
+        card.innerHTML = `<p class="text-sm font-medium">${e.nombre}</p><p class="text-xs text-slate-500">${new Date(e.fecha).toLocaleDateString()}</p>`;
+        card.onclick = () => selectEvent(e.id);
+        related.appendChild(card);
+      });
+    }
+
+    // ====== GUESTS ======
+    async function loadGuests(){
+      const items = await apiGet(API.invitados(state.eventoSel.id));
+      guestList.innerHTML = '';
+      items.forEach(g=>{
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-2';
+        li.innerHTML = `<div>
+            <p class="text-sm font-medium">${g.nombre}</p>
+            <p class="text-xs text-slate-500">${g.telefono||''} ${g.correo? '• '+g.correo:''}</p>
+          </div>
+          <button class="text-xs text-red-600" onclick="delGuest('${g.id}')">Eliminar</button>`;
+        guestList.appendChild(li);
+      });
+    }
+    async function addGuest(){
+      const body = { nombre: guestName.value, telefono: guestPhone.value };
+      if(!body.nombre){ alert('Nombre es obligatorio'); return; }
+      await apiPost(API.invitados(state.eventoSel.id), body);
+      guestName.value=''; guestPhone.value='';
+      loadGuests();
+    }
+    async function delGuest(id){ await apiDel(API.invitado(id)); loadGuests(); }
+    btnAddGuest.addEventListener('click', addGuest);
+    window.delGuest = delGuest;
+
+    // ====== TASKS ======
+    async function loadTasks(){
+      const items = await apiGet(API.tareas(state.eventoSel.id));
+      taskList.innerHTML = '';
+      items.forEach(t=>{
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-2';
+        li.innerHTML = `<div>
+            <p class="text-sm font-medium ${t.completada?'line-through text-slate-400':''}">${t.titulo}</p>
+            <p class="text-xs text-slate-500">${t.fechaLimite? new Date(t.fechaLimite).toLocaleDateString():''}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-xs"><input type="checkbox" ${t.completada?'checked':''} onchange="toggleTask('${t.id}', this.checked)"> Hecha</label>
+            <button class="text-xs text-red-600" onclick="delTask('${t.id}')">Eliminar</button>
+          </div>`;
+        taskList.appendChild(li);
+      });
+    }
+    async function addTask(){
+      const body = { titulo: taskTitle.value, fechaLimite: taskDue.value };
+      if(!body.titulo){ alert('La tarea necesita un título'); return; }
+      await apiPost(API.tareas(state.eventoSel.id), body);
+      taskTitle.value=''; taskDue.value='';
+      loadTasks();
+    }
+    async function toggleTask(id, done){ await apiPut(API.tarea(id), { completada: done }); loadTasks(); }
+    async function delTask(id){ await apiDel(API.tarea(id)); loadTasks(); }
+    btnAddTask.addEventListener('click', addTask);
+    window.toggleTask = toggleTask; window.delTask = delTask;
+
+    // ====== BUDGET ======
+    async function loadBudget(){
+      const items = await apiGet(API.presupuesto(state.eventoSel.id));
+      budgetTable.innerHTML = '';
+      let sumBudget=0, sumSpend=0;
+      items.forEach(p=>{
+        sumBudget += Number(p.presupuesto||0); sumSpend += Number(p.gastoActual||0);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="py-2 pr-4">${p.descripcion}</td>
+          <td class="py-2 pr-4">${asCurrency(p.presupuesto)}</td>
+          <td class="py-2 pr-4">${asCurrency(p.gastoActual)}</td>
+          <td class="py-2"><button class="text-xs text-red-600" onclick="delPartida('${p.id}')">Eliminar</button></td>`;
+        budgetTable.appendChild(tr);
+      });
+      const diff = sumBudget - sumSpend;
+      budgetSummary.textContent = `Presupuesto: ${asCurrency(sumBudget)} • Gasto: ${asCurrency(sumSpend)} • Disponible: ${asCurrency(diff)}`;
+    }
+    async function addPartida(){
+      const body = { descripcion: itemDesc.value, presupuesto: Number(itemBudget.value||0), gastoActual: Number(itemSpend.value||0) };
+      if(!body.descripcion){ alert('Describe la partida'); return; }
+      await apiPost(API.presupuesto(state.eventoSel.id), body);
+      itemDesc.value=''; itemBudget.value=''; itemSpend.value='';
+      loadBudget();
+    }
+    async function delPartida(id){ await apiDel(API.partida(id)); loadBudget(); }
+    btnAddItem.addEventListener('click', addPartida);
+    window.delPartida = delPartida;
+
+    // ====== TIMELINE ======
+    async function loadTimeline(){
+      const items = await apiGet(API.actividades(state.eventoSel.id));
+      timelineList.innerHTML = '';
+      items.sort((a,b)=> (a.hora||'').localeCompare(b.hora||''));
+      items.forEach(a=>{
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-2';
+        li.innerHTML = `<div>
+            <p class="text-sm font-medium">${a.hora? a.hora.substring(0,5): ''} — ${a.descripcion}</p>
+          </div>
+          <button class="text-xs text-red-600" onclick="delActivity('${a.id}')">Eliminar</button>`;
+        timelineList.appendChild(li);
+      });
+    }
+    async function addActivity(){
+      const body = { hora: actTime.value, descripcion: actDesc.value };
+      if(!body.descripcion){ alert('Describe la actividad'); return; }
+      await apiPost(API.actividades(state.eventoSel.id), body);
+      actTime.value=''; actDesc.value='';
+      loadTimeline();
+    }
+    async function delActivity(id){ await apiDel(API.actividad(id)); loadTimeline(); }
+    btnAddActivity.addEventListener('click', addActivity);
+    window.delActivity = delActivity;
+
+    // ====== COMMENTS ======
+    async function loadComments(){
+      // Si el backend aún no tiene /comentarios, ocultamos la pestaña
+      try{
+        const items = await apiGet(API.comentarios(state.eventoSel.id));
+        document.querySelector('[data-tab="comments"]').classList.remove('hidden');
+        commentList.innerHTML = '';
+        items.reverse().forEach(c=>{
+          const li = document.createElement('li');
+          li.className = 'p-2 flex items-start justify-between gap-3';
+          li.innerHTML = `<div class="flex-1">
+              <p class="text-sm">${c.texto||c.contenido||''}</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">${fmtDate(c.fechaCreacion||c.createdAt)}</p>
+            </div>
+            <button class="text-xs text-red-600" onclick="delComment('${c.id}')">Eliminar</button>`;
+          commentList.appendChild(li);
+        });
+      }catch(err){
+        // Ocultar pestaña si 404
+        document.querySelector('[data-tab="comments"]').classList.add('hidden');
+      }
+    }
+    async function addComment(){
+      if(!commentText.value.trim()) return;
+      await apiPost(API.comentarios(state.eventoSel.id), { texto: commentText.value.trim() });
+      commentText.value = '';
+      loadComments();
+    }
+    async function delComment(id){ await apiDel(API.comentario(id)); loadComments(); }
+    btnAddComment.addEventListener('click', addComment);
+    window.delComment = delComment;
+
+    // ====== CREATE / EDIT EVENT ======
+    btnNew.addEventListener('click', ()=>{ evName.value=''; evDate.value=''; evTime.value=''; evPlace.value=''; evDesc.innerHTML=''; openModal(false); });
+    btnRefresh.addEventListener('click', loadEvents);
+
+    btnSave.addEventListener('click', async ()=>{
+      if(!evName.value || !evDate.value){ alert('Nombre y fecha son obligatorios'); return; }
+      const body = { nombre: evName.value, fecha: evDate.value, ubicacion: evPlace.value, color: evColor.value, descripcion: evDesc.innerHTML };
+      await apiPost(API.eventos(), body);
+      closeModal();
+      loadEvents();
+    });
+
+    btnEdit.addEventListener('click', ()=>{
+      if(!state.eventoSel) return;
+      evName.value = state.eventoSel.nombre||'';
+      evDate.value = state.eventoSel.fecha? new Date(state.eventoSel.fecha).toISOString().slice(0,10): '';
+      evTime.value = '';
+      evPlace.value = state.eventoSel.ubicacion||'';
+      evColor.value = state.eventoSel.color||'#0ea5e9';
+      evDesc.innerHTML = state.eventoSel.descripcion||'';
+      openModal(true);
+      btnSave.onclick = async ()=>{
+        if(!evName.value || !evDate.value){ alert('Nombre y fecha son obligatorios'); return; }
+        const body = { nombre: evName.value, fecha: evDate.value, ubicacion: evPlace.value, color: evColor.value, descripcion: evDesc.innerHTML };
+        await apiPut(API.evento(state.eventoSel.id), body);
+        closeModal();
+        loadEvents();
+      };
+    });
+
+    btnDelete.addEventListener('click', async ()=>{
+      if(!state.eventoSel) return; if(!confirm('¿Eliminar este evento?')) return;
+      await apiDel(API.evento(state.eventoSel.id));
+      state.eventoSel = null;
+      evTitle.textContent = 'Selecciona un evento';
+      evMeta.textContent = 'Fecha, hora y ubicación aparecerán aquí.';
+      evDescription.innerHTML = '';
+      loadEvents();
+    });
+
+    // Filters
+    document.querySelectorAll('[data-filter]').forEach(btn=> btn.addEventListener('click', ()=>{ state.filters.when = btn.dataset.filter; renderList(); }));
+    btnSearch.addEventListener('click', ()=>{ state.filters.q = q.value; renderList(); });
+    q.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ state.filters.q=q.value; renderList(); }});
+
+    // Init
+    loadEvents();
+  </script>
+</body>
+</html>
